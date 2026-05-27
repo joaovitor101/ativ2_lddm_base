@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Permite conexões HTTP (sem HTTPS) durante o desenvolvimento.
+  Necessário porque o servidor Ktor local não usa certificado SSL.
+-->
+<network-security-config>
+    <!-- Permite HTTP para QUALQUER domínio/IP (modo desenvolvimento) -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
