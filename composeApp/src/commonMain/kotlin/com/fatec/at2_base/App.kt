@@ -1,22 +1,29 @@
 package com.fatec.at2_base
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,20 +31,44 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fatec.at2_base.model.Valorant
 import kotlinx.coroutines.launch
 
+private val ValorantColorScheme = lightColorScheme(
+    primary = Color(0xFFE63946),
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFFFDAD8),
+    onPrimaryContainer = Color(0xFF410003),
+    secondary = Color(0xFF006D77),
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFFB6EAEE),
+    onSecondaryContainer = Color(0xFF002023),
+    tertiary = Color(0xFFFFB703),
+    onTertiary = Color(0xFF2A1C00),
+    tertiaryContainer = Color(0xFFFFE7A6),
+    onTertiaryContainer = Color(0xFF2A1C00),
+    background = Color(0xFFFFF8F1),
+    onBackground = Color(0xFF1F1A17),
+    surface = Color(0xFFFFFBF7),
+    onSurface = Color(0xFF1F1A17),
+    surfaceVariant = Color(0xFFEDE2D8),
+    onSurfaceVariant = Color(0xFF51443C),
+    outline = Color(0xFF83736A),
+    outlineVariant = Color(0xFFD7C6BA)
+)
+
+private val ScreenShape = RoundedCornerShape(8.dp)
+
 @Composable
 fun App() {
-    MaterialTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            ValorantScreen()
-        }
+    MaterialTheme(colorScheme = ValorantColorScheme) {
+        ValorantScreen()
     }
 }
 
@@ -83,14 +114,54 @@ private fun ValorantScreen() {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFFFFF8F1),
+                        Color(0xFFEAF7F4),
+                        Color(0xFFFFECE8)
+                    )
+                )
+            )
+            .padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFF1F1A17), ScreenShape)
+                    .padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
                 Text(
                     text = "Agentes Valorant",
+                    color = Color.White,
+                    fontWeight = FontWeight.ExtraBold,
                     style = MaterialTheme.typography.headlineSmall
+                )
+                Text(
+                    text = "Cadastro dos personagens e suas origens",
+                    color = Color(0xFFFFDAD8),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface, ScreenShape)
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, ScreenShape)
+                    .padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = if (editingId == null) "Novo agente" else "Editando agente",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
                 )
 
                 OutlinedTextField(
@@ -105,7 +176,8 @@ private fun ValorantScreen() {
                     value = description,
                     onValueChange = { description = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Descricao") }
+                    label = { Text("Descricao") },
+                    minLines = 3
                 )
 
                 OutlinedTextField(
@@ -116,68 +188,77 @@ private fun ValorantScreen() {
                     singleLine = true
                 )
 
-                Row(
+                Button(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        enabled = !isSaving,
-                        onClick = {
-                            if (agent.isBlank() || description.isBlank() || country.isBlank()) {
-                                feedback = "Preencha agente, descricao e pais."
-                                return@Button
-                            }
+                    enabled = !isSaving,
+                    shape = ScreenShape,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    onClick = {
+                        if (agent.isBlank() || description.isBlank() || country.isBlank()) {
+                            feedback = "Preencha agente, descricao e pais."
+                            return@Button
+                        }
 
-                            scope.launch {
-                                isSaving = true
-                                feedback = null
-                                runCatching {
-                                    val currentEditingId = editingId
-                                    if (currentEditingId == null) {
-                                        ApiClient.createAgent(
+                        scope.launch {
+                            isSaving = true
+                            feedback = null
+                            runCatching {
+                                val currentEditingId = editingId
+                                if (currentEditingId == null) {
+                                    ApiClient.createAgent(
+                                        agent = agent.trim(),
+                                        description = description.trim(),
+                                        country = country.trim()
+                                    )
+                                } else {
+                                    ApiClient.updateAgent(
+                                        id = currentEditingId,
+                                        valorant = Valorant(
+                                            id = currentEditingId,
                                             agent = agent.trim(),
                                             description = description.trim(),
                                             country = country.trim()
                                         )
-                                    } else {
-                                        ApiClient.updateAgent(
-                                            id = currentEditingId,
-                                            valorant = Valorant(
-                                                id = currentEditingId,
-                                                agent = agent.trim(),
-                                                description = description.trim(),
-                                                country = country.trim()
-                                            )
-                                        )
-                                    }
-                                    ApiClient.getAgents()
-                                }.onSuccess {
-                                    feedback = if (editingId == null) {
-                                        "Agente cadastrado com sucesso."
-                                    } else {
-                                        "Agente atualizado com sucesso."
-                                    }
-                                    clearForm()
-                                    agents = it
-                                }.onFailure {
-                                    feedback = "Erro ao salvar: ${it.message.orEmpty()}"
+                                    )
                                 }
-                                isSaving = false
+                                ApiClient.getAgents()
+                            }.onSuccess {
+                                feedback = if (editingId == null) {
+                                    "Agente cadastrado com sucesso."
+                                } else {
+                                    "Agente atualizado com sucesso."
+                                }
+                                clearForm()
+                                agents = it
+                            }.onFailure {
+                                feedback = "Erro ao salvar: ${it.message.orEmpty()}"
                             }
+                            isSaving = false
                         }
-                    ) {
-                        Text(
-                            when {
-                                isSaving -> "Salvando..."
-                                editingId == null -> "Cadastrar"
-                                else -> "Salvar"
-                            }
-                        )
                     }
+                ) {
+                    Text(
+                        when {
+                            isSaving -> "Salvando..."
+                            editingId == null -> "Cadastrar"
+                            else -> "Salvar"
+                        }
+                    )
+                }
 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     if (editingId != null) {
                         OutlinedButton(
+                            modifier = Modifier.weight(1f),
                             enabled = !isSaving,
+                            shape = ScreenShape,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                             onClick = {
                                 clearForm()
                                 feedback = null
@@ -188,7 +269,13 @@ private fun ValorantScreen() {
                     }
 
                     Button(
+                        modifier = Modifier.weight(1f),
                         enabled = !isLoading,
+                        shape = ScreenShape,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary
+                        ),
                         onClick = { loadAgents() }
                     ) {
                         Text("Atualizar")
@@ -196,25 +283,40 @@ private fun ValorantScreen() {
                 }
 
                 feedback?.let {
-                    Text(
-                        text = it,
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    FeedbackMessage(message = it)
                 }
             }
         }
 
         item {
-            Text(
-                text = "Lista consumida do GET /valorant",
-                style = MaterialTheme.typography.titleMedium
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Lista de agentes",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "${agents.size} registro(s)",
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
 
         if (isLoading) {
             item {
-                CircularProgressIndicator()
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.secondary)
+                }
             }
         }
 
@@ -253,6 +355,20 @@ private fun ValorantScreen() {
 }
 
 @Composable
+private fun FeedbackMessage(message: String) {
+    Text(
+        text = message,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primaryContainer, ScreenShape)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        fontWeight = FontWeight.SemiBold,
+        style = MaterialTheme.typography.bodyMedium
+    )
+}
+
+@Composable
 private fun AgentCard(
     valorant: Valorant,
     onEdit: () -> Unit,
@@ -260,28 +376,81 @@ private fun AgentCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
+        shape = ScreenShape,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .background(MaterialTheme.colorScheme.primary)
+        )
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = valorant.agent,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "#${valorant.id}",
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(6.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
             Text(
-                text = "${valorant.id} - ${valorant.agent}",
-                style = MaterialTheme.typography.titleMedium
+                text = valorant.description.orEmpty(),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium
             )
-            Text(text = valorant.description.orEmpty())
             Text(
                 text = valorant.country.orEmpty(),
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(6.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                fontWeight = FontWeight.SemiBold,
                 style = MaterialTheme.typography.bodySmall
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = onEdit) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    shape = ScreenShape,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.secondary
+                    ),
+                    onClick = onEdit
+                ) {
                     Text("Editar")
                 }
-                OutlinedButton(onClick = onDelete) {
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    shape = ScreenShape,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    ),
+                    onClick = onDelete
+                ) {
                     Text("Excluir")
                 }
             }
